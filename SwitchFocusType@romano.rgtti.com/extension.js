@@ -15,28 +15,45 @@ const Meta = ExtensionUtils.getCurrentExtension();
 const Util = imports.misc.util;
 const Gio = imports.gi.Gio;
 
-let text, button, icon_f, icon_c, wm_prefs;
+let text, button_r, icon_f, icon_c, wm_prefs;
+let icon_r, icon_nr, button_f;
 
 var focus;
 const FFM=0;
 const CTF=1;
 
+var autoraise;
+
 function _set_FFM() {
 	focus = FFM;
-	button.set_child(icon_f);
+	button_f.set_child(icon_f);
 	wm_prefs.set_string('focus-mode', FFM_VARIANT);
 }
 
 function _set_CTF() {
 	focus = CTF;
-	button.set_child(icon_c);
+	button_f.set_child(icon_c);
 	wm_prefs.set_string('focus-mode', 'click');
+}
+
+function _set_AUTORAISE() {
+	autoraise = true;
+	button_r.set_child(icon_r);
+	wm_prefs.set_boolean('auto-raise', true);
+}
+
+function _set_NORAISE() {
+	autoraise = false;
+	button_r.set_child(icon_nr);
+	wm_prefs.set_boolean('auto-raise', false);
 }
 
 
 function _hideMsg() {
-	Main.uiGroup.remove_actor(text);
-	text = null;
+	if (text) {
+		Main.uiGroup.remove_actor(text);
+		text = null;
+	}
 }
 
 function _showMsg(what) {
@@ -56,7 +73,8 @@ function _showMsg(what) {
 		onComplete: _hideMsg });
 }
 
-function _switch() {
+function _switch_f() {
+	_hideMsg();
 	if (focus == FFM) {
 		_showMsg("Setting Click-to-focus");
 		_set_CTF();
@@ -66,8 +84,26 @@ function _switch() {
 	}
 }
 
+function _switch_r() {
+	_hideMsg();
+	if (autoraise) {
+		_showMsg("Disabling autoraise");
+		_set_NORAISE();
+	} else {
+		_showMsg("Enabling autoraise");
+		_set_AUTORAISE();
+	}
+}
+
+
 function init() {
-	button = new St.Bin({ style_class: 'panel-button',
+	button_f = new St.Bin({ style_class: 'panel-button',
+		reactive: true,
+	       	can_focus: true,
+	       	x_fill: true,
+	      	y_fill: false,
+	        track_hover: true });
+	button_r = new St.Bin({ style_class: 'panel-button',
 		reactive: true,
 	       	can_focus: true,
 	       	x_fill: true,
@@ -78,21 +114,35 @@ function init() {
 		style_class: 'system-status-icon' });
 	icon_c = new St.Icon({ icon_name: 'cmode',
 		style_class: 'system-status-icon' });
+	icon_r = new St.Icon({ icon_name: 'rmode',
+		style_class: 'system-status-icon' });
+	icon_nr = new St.Icon({ icon_name: 'nrmode',
+		style_class: 'system-status-icon' });
 	wm_prefs=new Gio.Settings({schema: 'org.gnome.desktop.wm.preferences'});
 }
 
 function enable() {
 	// start with the current mode --- sync icon and internal state.
+	var what;
 	what=wm_prefs.get_string('focus-mode');
 	if (what == 'click') {
 		_set_CTF();
 	} else { // sloppy or mouse
 		_set_FFM();
 	}
-	button.connect('button-press-event', _switch);
-	Main.panel._rightBox.insert_child_at_index(button, 0);
+	what=wm_prefs.get_boolean('auto-raise');
+	if (what) {
+		_set_AUTORAISE();
+	} else { 
+		_set_NORAISE();
+	}
+	button_f.connect('button-press-event', _switch_f);
+	button_r.connect('button-press-event', _switch_r);
+	Main.panel._rightBox.insert_child_at_index(button_f, 0);
+	Main.panel._rightBox.insert_child_at_index(button_r, 0);
 }
 
 function disable() {
-	Main.panel._rightBox.remove_child(button);
+	Main.panel._rightBox.remove_child(button_r);
+	Main.panel._rightBox.remove_child(button_f);
 }

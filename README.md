@@ -12,16 +12,21 @@ they need to switch to the click-to-focus (CTF) mode because some program
 misbehave: for example, a lot of programs running under wine will fail 
 to correctly show menus when in Focus Follow Mouse (the menu disappears shortly 
 after popping up because the window which is the menu is unable to get focus). 
+Moreover, the extensions allows to change the auto-raise behavior of focused 
+windows, enabling or disabling it. 
 
 ### Features
 
-Click on the icon to change from FFM (_F_ icon) to CTF (_C_ icon). 
+Click on the icon with an F or a C to change from FFM (_F_ icon) to CTF (_C_ icon). 
+Click on the icon with an R to change from autoraise enabled (_R_ icon) 
+to autoraise diabled  (_R_ icon with a red slash on it). 
+
 Each click toggle the status.
 
 Works on gnome-shell 3.10, but probably also in other version. 
 Just try to add the version to `metadata.json` and tell me if it works for you.
 
-![Screencast](https://raw.githubusercontent.com/Rmano/gse-switch-focus-mode/master/screencast.gif)
+![Screencast](https://raw.githubusercontent.com/Rmano/gse-switch-focus-mode/master/screencast2.gif)
 
 ### Install 
 
@@ -38,11 +43,11 @@ to
 
     const FFM_VARIANT='mouse';
 
-To change other options (like for example auto-raise behavior and similar)
+To change other options (like for example auto-raise delay and similar)
 open `dconf-editor`  (install it if you need to) and navigate to the schema 
 `org.gnome.desktop.wm.preferences` --- you will find all the other 
-options there; this extension will touch only the `focus-mode` key and
-leave alone all the others parameters.
+options there; this extension will touch only the `focus-mode` and 
+`auto-raise` key and leave alone all the others parameters.
 
 ### Known issues
 
